@@ -19,7 +19,7 @@ import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam;
  * Region compatibility applies only to already-trusted remote device IDs;
  * Xiaomi Account and remote-server authorization are not altered.
  */
-public final class MiLinkModule extends XposedModule {
+public class MiLinkModule extends XposedModule {
     private static final String TAG = "MiLinkTR";
     private static final String MILINK = "com.milink.service";
     private static final String MISHARE = "com.miui.mishare.connectivity";
