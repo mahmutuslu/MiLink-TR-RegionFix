@@ -10,8 +10,8 @@ android {
         applicationId = "dev.milinktr.regionfix"
         minSdk = 29
         targetSdk = 32
-        versionCode = 1
-        versionName = "0.1.0-alpha1-api102"
+        versionCode = 2
+        versionName = "0.2.0-alpha2-api102"
     }
 
     compileOptions {
@@ -20,9 +20,7 @@ android {
     }
 
     buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
+        release { isMinifyEnabled = false }
     }
 }
 

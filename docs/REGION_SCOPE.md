@@ -1,17 +1,22 @@
-# Region Fix — design and boundaries
+# Yerel bölge uyumluluğu ve Çin hesabı sınırları
 
-The term “China account required” can describe several distinct conditions:
+İki ayrı kısıtlama vardır:
 
-1. **Local UI / product region gating:** App-side feature visibility checks and device locale/region flags.
-2. **Account metadata:** Xiaomi Account's registration region and availability rules.
-3. **Server-side authorization:** Remote eligibility checks, device attestation, and entitlement.
+1. **Cihaz bölge eşleştirmesi:** Aynı Xiaomi hesaplarına sahip, ancak farklı ülke kodu bildiren Windows PC'ler, cihaz keşfi/clipboard/file özelliklerinde yerel \`PropBuildRegion\` eşleştirmesine takılabilir. Bu sürümde yalnızca karşı tarafın \`getDeviceType()\` değeri PC=4 veya OTHER_PC=21 ise, MiLink'in yerel eşleştirme yanıtında telefonun kendi bölgesi kullanılır.
+2. **Xiaomi hesabının ülke ve sunucu yetkisi:** Xiaomi sunucusunun Çin hesabı, sunucu etkinleştirmesi veya sertifika/cihaz onayı şartı LSPosed tarafından otomatik kaldırılmaz. Modül bu kontrolleri değiştirmez.
 
-This project's **alpha1 does not bypass any of them**. It provides a place to collect privacy-preserving diagnostic observations and eventually patch narrowly confirmed *local compatibility gates*, provided that doing so is safe and does not impersonate server responses, forge credentials, or promise inaccessible entitlements.
+MiLink APK üzerinde aşağıdaki imzalar doğrulandı:
 
-Future changes require:
-- Exact MiLink APK version and tested call sites.
-- Reproducible symptoms (feature, region, account type) with credentials redacted.
-- Baseline behavior before the hook and an explicit rollback.
-- Confirmation that server-side restrictions remain respected.
+- \`com.xiaomi.continuity.networking.NetworkingManager.getStringProperty(String,int):String\`
+- \`getTrustedDeviceInfo(String):TrustedDeviceInfo\`
+- \`getLocalDeviceInfo():TrustedDeviceInfo\`
+- \`TrustedDeviceInfo.getDeviceType():int\`
+- \`TrustedDeviceInfo.getDeviceId():String\`
 
-No device-wide spoofing of Xiaomi Account, fingerprint, security attestation, or login tokens is included.
+Modül \`PropertyType.PropBuildRegion\` enum sabitini çalışma anında çözümlemeyi dener; yoksa **bölge değişimi yapmaz** (fail closed).
+
+Bu yöntem cihaz keşfinin \`com.xiaomi.mirror\` tarafında ayrı region check varsa onu otomatik geçmez. Çalışan özellikleri bozmamak için kaynağı doğrulanmamış obfuscation hook'ları eklenmemiştir.
+
+Aşağıdaki işlemler bilinçli olarak **yapılmaz**: hesap kimliğini veya ülkesini sahteleştirme, giriş belirteçlerine müdahale, sunucu yanıtlarını değiştirme, cihaz güvenilirliği atlatma veya oturum güvenliği değişiklikleri.
+
+Referans: https://github.com/luobi125/Get-Out-Xiaomi-Interconnection-Regional-Lock (yerel PC bölge uyumu analizi); bu repo kaynak kodunu kopyalamaz, doğrulanan imzaları kullanır.
