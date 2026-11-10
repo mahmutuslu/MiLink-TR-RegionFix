@@ -32,3 +32,18 @@ Global telefon/tablet denemelerinde cihazın önce MiLink güvenilir cihaz liste
 3. Xiaomi Share ekranında `Dosya almak için Xiaomi Share'i açın`, `Yakındaki cihazlar tarafından bulunabilir`, `Dokundurarak paylaş`, `Cihaz adı`, `Desteklenen cihazlar`, `Gizlilik` yazılarını doğrulayın.
 4. Log: `adb logcat -d -v time -s MiLinkTR:V` — yeni scope yüklendi mi kontrol edin.
 5. Hâlâ İngilizceyse ekran açıkken `adb shell dumpsys activity activities` ile etkin Activity paketini doğrulayın; sistem verilerini veya Xiaomi Share uygulama verilerini silmeyin.
+
+## v0.6 — Aynı hesap korumalı, CN zorunluluğu olmayan keşif testi
+
+Bu alpha sürümünde telefon cihaz araması sırasında gerçek Xiaomi hesabı oturumunu doğrulayabiliyorsa yerel CN hesap-bölgesi koşulu yalnızca o çağrı için gevşetilir. **Aynı hesap kontrolü veya sunucu doğrulaması geçersiz kılınmaz.**
+
+1. LSPosed kapsamı: \`com.milink.service\` ve \`com.miui.mishare.connectivity\`; yeniden başlat.
+2. MiLink > Bildirimler > Al bölümüne girip "Yenile" seçeneğine bas.
+3. \`adb logcat -d -v time -s MiLinkTR:V\` çıktısını incele:
+   - \`Discovery-only CN account region compatibility installed\`: hook kurulmuş.
+   - \`CN-only check relaxed for discovery with a signed-in Xiaomi account\`: bu keşifte bölge koşulu gerçekten uygulanmış.
+   - Bu mesajın olmaması, yolun kullanıldığını **kanıtlamaz**.
+4. Varsa aynı Xiaomi hesabındaki Global telefon/tablette de Wi-Fi/Bluetooth açıkken cihaz listelerini karşılaştır.
+5. Sorun varsa LSPosed'de modülü devre dışı bırakıp MiLink'i yeniden başlat; hesap/veri temizleme veya ROM bölgesi değiştirme gerekmez.
+
+Önemli: Diğer bir LSPosed modülü aynı keşif fonksiyonunu değiştiriyorsa birlikte davranışları doğrulanmalıdır.

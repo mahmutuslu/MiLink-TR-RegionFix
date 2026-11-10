@@ -2,17 +2,18 @@
 
 Xiaomi HyperOS 4 ve MiLink (\`com.milink.service\`) için açık kaynak test modülü.
 
-**Son sürüm: v0.5.0-alpha5 — Xiaomi Share kapsamı henüz cihazda doğrulanmadı.** Önceki v0.1.0-alpha1 ana Interconnectivity sayfasında Türkçe metinleri başarıyla gösterdi.
+**Son sürüm: v0.6.0-alpha6 — yeni dar kapsamlı CN keşif düzeltmesi henüz cihazda doğrulanmadı.** Önceki v0.1.0-alpha1 ana Interconnectivity sayfasında Türkçe metinleri başarıyla gösterdi.
 
-## v0.5 alpha5 kapsamı
+## v0.6 alpha6 kapsamı
 
+- **China-only hesap bölgesi keşif kısıtı (deneysel):** MiLink `NotificationTransDeviceManager.startDiscovery` işlemi içinde, *gerçek Xiaomi hesabında oturum açılmışsa*, `AccountManager.getRegion()` sorgusunun `CN` zorunluluğu yalnızca bu çağrı bağlamında gevşetilir. Hesap kimliği veya "same account" eşleşmesi **değiştirilmez**. Hesap yoksa veya kaynak imzaları uyuşmazsa orijinal davranış korunur. Bulut sunucu yetkisi garanti değildir.
 - **Yeni ayrı uygulama kapsamı:** Xiaomi Share'in kendi `com.miui.mishare.connectivity` sürecine Türkçe UI hook'ları eklendi. Xiaomi Share ekranının yazıları MiLink APK'sında bulunmadığı için önceki sürümler bu ekranı etkileyemiyordu. Xiaomi Share için çevrimdışı, ekran görüntülerine dayanan Türkçe metin sözlüğü kullanılır; MiLink'in dinamik kaynak sözlüğü ayrı kalır.
 - **Alt ekran Türkçeleri:** Ana ekran+, Ekran yansıtma, Bildirimler (Al / Eşitle), Xiaomi Share dahil kullanıcının gönderdiği ekranlardaki eksik metinlerin sabit karşılıkları eklendi. Yeni ekranlarda dinamik kaynak sözlüğü de kullanılacak.
 - **Tüm MiLink alt menüleri:** yalnızca başlangıç \`ConnectivityActivity\` yerine MiLink'e ait tüm \`Activity\` ekranlarında, eşleşen UI metinlerini Türkçeye çevirir.
 - **Dinamik çeviri sözlüğü:** cihazda yüklü MiLink APK'sının \`R$string\` kaynaklarını İngilizce ve Türkçe yapılandırmada çözümler. Aktif LightOS/KernelSU Türkçe overlay'inden yararlanır. Çakışan metinleri güvenle atlar; çalışma anında sadece UI \`TextView\` değerlerini değiştirir. Ayrıca ilk ekranda doğrulanmış metinler için sabit karşılıklar vardır.
 - **Zengin biçimli metinler:** Ana ekrandaki "Learn more" linkini koruyacak sınırlı bir dönüştürme içerir.
 - **Yerel bölge uyumu (tüm güvenilir cihaz tipleri):** `NetworkingManager.getStringProperty(String,int)` içindeki `PropBuildRegion` sorgusunda yalnızca MiLink güvenilir cihaz kayıtlarında doğrulanmış, kimliği eşleşen uzak cihazların yerel bölge değerini döndürür. Global telefon/tablet/bilgisayar için aynı yerel eşleştirme uygulanır; bilinmeyen veya eşleştirilmemiş cihazlara dokunulmaz.
-- **Hesap doğrulama:** Xiaomi hesabı, giriş bilgisi, token'lar, sunucu doğrulaması, abonelik veya sunucu tarafı Çin hesabı gereksinimi **değiştirilmez / kaldırılamaz**. Bilgisayarın bölge uyumu ile hesap ülke kısıtı farklı konulardır.
+- **Hesap doğrulama:** Xiaomi hesabı kimliği, giriş bilgisi, tokenlar, same-account doğrulaması, sunucu doğrulaması veya abonelik **değiştirilmez**. Yalnızca bildirim cihaz aramasının başlangıcındaki yerel CN bölge koşulu, geçerli oturumla sınırlı olarak geçici karşılanır; sunucunun Çin hesabı şartı varsa yine geçerlidir. Bilgisayarın bölge uyumu ile hesap ülke kısıtı farklı konulardır.
 
 ## Hedef
 

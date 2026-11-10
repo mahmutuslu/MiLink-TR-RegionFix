@@ -28,7 +28,7 @@ public final class MiLinkModule extends XposedModule {
 
     @Override
     public void onModuleLoaded(ModuleLoadedParam param) {
-        Log.i(TAG, "alpha5 API102 loaded in " + param.getProcessName());
+        Log.i(TAG, "alpha6 API102 loaded in " + param.getProcessName());
     }
 
     @Override
@@ -49,6 +49,7 @@ public final class MiLinkModule extends XposedModule {
         // Local region compatibility must never touch the Xiaomi Share process.
         if (MILINK.equals(param.getPackageName())) {
             new PcRegionFix(this, loader).install();
+            new SameAccountDiscoveryFix(this, loader).install();
         }
     }
 
@@ -56,7 +57,7 @@ public final class MiLinkModule extends XposedModule {
         try {
             Method m = TextView.class.getDeclaredMethod(
                     "setText", CharSequence.class, TextView.BufferType.class);
-            hook(m).setId("milink-tr-textview-alpha5").intercept(chain -> {
+            hook(m).setId("milink-tr-textview-alpha6").intercept(chain -> {
                 Object receiver = chain.getThisObject();
                 if (!(receiver instanceof TextView)) return chain.proceed();
                 TextView tv = (TextView) receiver;
@@ -81,7 +82,7 @@ public final class MiLinkModule extends XposedModule {
     private void installFocusHook() {
         try {
             Method m = Activity.class.getDeclaredMethod("onWindowFocusChanged", boolean.class);
-            hook(m).setId("milink-tr-window-focus-alpha5").intercept(chain -> {
+            hook(m).setId("milink-tr-window-focus-alpha6").intercept(chain -> {
                 Object result = chain.proceed();
                 Object receiver = chain.getThisObject();
                 if (receiver instanceof Activity && Boolean.TRUE.equals(chain.getArg(0))) {
