@@ -50,7 +50,7 @@ jobs:
               m = re.search(r'private static final String ' + name + r' = "([^"]+)";', source)
               assert m, 'missing dictionary ' + name
               raw = zlib.decompress(base64.b64decode(m.group(1))).decode('utf-8')
-              rows = [line.split('\\t', 1) for line in raw.splitlines()]
+              rows = [line.split(chr(9), 1) for line in raw.splitlines()]
               assert len(rows) == number, (name, len(rows), number)
               assert all(len(row) == 2 and row[0] and row[1] for row in rows)
               print(name, number, 'verified English-source dictionary entries')
