@@ -27,7 +27,7 @@ public final class MiLinkModule extends XposedModule {
 
     @Override
     public void onModuleLoaded(ModuleLoadedParam param) {
-        Log.i(TAG, "alpha2 API102 loaded in " + param.getProcessName());
+        Log.i(TAG, "alpha4 API102 loaded in " + param.getProcessName());
     }
 
     @Override
@@ -52,7 +52,7 @@ public final class MiLinkModule extends XposedModule {
         try {
             Method m = TextView.class.getDeclaredMethod(
                     "setText", CharSequence.class, TextView.BufferType.class);
-            hook(m).setId("milink-tr-textview-alpha2").intercept(chain -> {
+            hook(m).setId("milink-tr-textview-alpha4").intercept(chain -> {
                 Object receiver = chain.getThisObject();
                 if (!(receiver instanceof TextView)) return chain.proceed();
                 TextView tv = (TextView) receiver;
@@ -77,7 +77,7 @@ public final class MiLinkModule extends XposedModule {
     private void installFocusHook() {
         try {
             Method m = Activity.class.getDeclaredMethod("onWindowFocusChanged", boolean.class);
-            hook(m).setId("milink-tr-window-focus-alpha2").intercept(chain -> {
+            hook(m).setId("milink-tr-window-focus-alpha4").intercept(chain -> {
                 Object result = chain.proceed();
                 Object receiver = chain.getThisObject();
                 if (receiver instanceof Activity && Boolean.TRUE.equals(chain.getArg(0))) {

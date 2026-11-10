@@ -2,10 +2,11 @@
 
 Xiaomi HyperOS 4 ve MiLink (\`com.milink.service\`) için açık kaynak test modülü.
 
-**Son sürüm: v0.3.0-alpha3 — cihazda henüz doğrulanmadı.** Önceki v0.1.0-alpha1 ana Interconnectivity sayfasında Türkçe metinleri başarıyla gösterdi.
+**Son sürüm: v0.4.0-alpha4 — cihazda henüz doğrulanmadı.** Önceki v0.1.0-alpha1 ana Interconnectivity sayfasında Türkçe metinleri başarıyla gösterdi.
 
-## v0.3 alpha3 kapsamı
+## v0.4 alpha4 kapsamı
 
+- **Alt ekran Türkçeleri:** Ana ekran+, Ekran yansıtma, Bildirimler (Al / Eşitle), Xiaomi Share dahil kullanıcının gönderdiği ekranlardaki eksik metinlerin sabit karşılıkları eklendi. Yeni ekranlarda dinamik kaynak sözlüğü de kullanılacak.
 - **Tüm MiLink alt menüleri:** yalnızca başlangıç \`ConnectivityActivity\` yerine MiLink'e ait tüm \`Activity\` ekranlarında, eşleşen UI metinlerini Türkçeye çevirir.
 - **Dinamik çeviri sözlüğü:** cihazda yüklü MiLink APK'sının \`R$string\` kaynaklarını İngilizce ve Türkçe yapılandırmada çözümler. Aktif LightOS/KernelSU Türkçe overlay'inden yararlanır. Çakışan metinleri güvenle atlar; çalışma anında sadece UI \`TextView\` değerlerini değiştirir. Ayrıca ilk ekranda doğrulanmış metinler için sabit karşılıklar vardır.
 - **Zengin biçimli metinler:** Ana ekrandaki "Learn more" linkini koruyacak sınırlı bir dönüştürme içerir.

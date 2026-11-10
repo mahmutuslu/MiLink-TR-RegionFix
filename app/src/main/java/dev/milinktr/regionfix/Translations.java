@@ -47,6 +47,53 @@ final class Translations {
                 "Bildirimleri diğer cihazlarla paylaş");
         m.put("Sync calls across devices",
                 "Aramaları cihazlar arasında eşitle");
+        // Verified from user screenshots: Home screen+, Cast, Notifications and Share subpages.
+        m.put("Cast mobile device screen to nearby TVs and other external monitors",
+                "Mobil cihazınızın ekranını yakındaki TV'lere ve diğer harici ekranlara yansıtın");
+        m.put("View the list of available devices for casting",
+                "Yansıtma için kullanılabilir cihazların listesini görüntüleyin");
+        m.put("Hide private items", "Özel ögeleri gizle");
+        m.put("Don't display floating notifications and incoming calls",
+                "Kayan bildirimleri ve gelen aramaları gösterme");
+        m.put("Help", "Yardım");
+        m.put("Permissions details", "İzin ayrıntıları");
+        m.put("Receive", "Al");
+        m.put("Sync", "Eşitle");
+        m.put("Notifications you get while this device is locked can be shown on phones, tablets, computers, TVs, or connected watches signed in to the same account",
+                "Bu cihaz kilitliyken gelen bildirimler, aynı hesapla oturum açılmış telefon, tablet, bilgisayar, TV veya bağlı saatlerde gösterilebilir");
+        m.put("Other notifications", "Diğer bildirimler");
+        m.put("When this device is connected to the network, notifications from another locked Xiaomi phone signed in to the same account can be viewed on this device.",
+                "Bu cihaz ağa bağlıyken, aynı hesapla oturum açılmış kilitli bir Xiaomi telefondan gelen bildirimleri bu cihazda görüntüleyebilirsiniz.");
+        m.put("When devices signed in to the same account are nearby and have Bluetooth and WLAN turned on, notifications from other devices can be replied to directly on this device.",
+                "Aynı hesapta oturum açılmış cihazlar yakındaysa ve Bluetooth ile WLAN açıksa, diğer cihazlardan gelen bildirimlere doğrudan bu cihazdan yanıt verebilirsiniz.");
+        m.put("Available devices", "Kullanılabilir cihazlar");
+        m.put("Refresh", "Yenile");
+        m.put("Couldn't find available devices", "Kullanılabilir cihaz bulunamadı");
+        m.put("Make sure both devices are signed in to the same account and are connected to the network, or have WLAN turned on",
+                "Her iki cihazın da aynı hesapta oturum açtığından ve ağa bağlı olduğundan veya WLAN'ın açık olduğundan emin olun");
+        m.put("Turn on Xiaomi Share to receive files",
+                "Dosya almak için Xiaomi Share'i açın");
+        m.put("You can turn on Xiaomi Share in Control center",
+                "Xiaomi Share'i Kontrol Merkezi'nden açabilirsiniz");
+        m.put("Can be found by nearby devices", "Yakındaki cihazlar tarafından bulunabilir");
+        m.put("Before setting your receiving status to \"From this account\", make sure the other device's system version is updated to Xiaomi HyperOS or later, and Xiaomi Share is updated to version 3.0.0 or later.",
+                "Alma durumunu \"Bu hesaptan\" yapmadan önce diğer cihazın Xiaomi HyperOS veya üzeri bir sürüme, Xiaomi Share'in de 3.0.0 veya üzeri sürüme güncellendiğinden emin olun.");
+        m.put("Touch to share", "Dokundurarak paylaş");
+        m.put("Touch the backs of two devices together to share items",
+                "Ögeleri paylaşmak için iki cihazın arka yüzlerini birbirine dokundurun");
+        m.put("Device name", "Cihaz adı");
+        m.put("Supported devices", "Desteklenen cihazlar");
+        // More common secondary-page labels.
+        m.put("Permissions", "İzinler");
+        m.put("Privacy Policy", "Gizlilik Politikası");
+        m.put("About", "Hakkında");
+        m.put("Cancel", "İptal");
+        m.put("Done", "Bitti");
+        m.put("Search again", "Tekrar ara");
+        m.put("No devices found", "Cihaz bulunamadı");
+        m.put("Select devices", "Cihazları seçin");
+        m.put("Settings", "Ayarlar");
+        m.put("Learn more", "Daha fazla bilgi");
         // The clickable "Learn more" span must remain clickable.
         MANUAL = Collections.unmodifiableMap(m);
     }
@@ -61,18 +108,36 @@ final class Translations {
         if (original == null) return original;
         if (original instanceof Spanned) return translateSpanned((Spanned) original);
 
-        String text = original.toString();
-        String replacement = MANUAL.get(text);
-        if (replacement == null) replacement = runtime.get(text);
-        if (replacement != null && !replacement.equals(text)) return replacement;
+        String raw = original.toString();
+        String translated = lookup(raw);
+        if (translated != null && !translated.equals(raw)) return translated;
 
-        String trimmed = text.trim();
-        if (!trimmed.equals(text)) {
-            replacement = MANUAL.get(trimmed);
-            if (replacement == null) replacement = runtime.get(trimmed);
-            if (replacement != null) return text.replace(trimmed, replacement);
+        // UI wraps sometimes insert newlines or NBSPs without changing the content.
+        String normalized = raw.replace('\u00a0', ' ').replaceAll("\\s+", " ").trim();
+        if (!normalized.equals(raw)) {
+            translated = lookup(normalized);
+            if (translated != null && !translated.equals(raw)) return translated;
         }
-        return original;
+
+        // The "Receive" explanation contains two bullet paragraphs in a single
+        // TextView. Replace only the two explicitly approved full sentences,
+        // preserving the original bullet markers and paragraph boundaries.
+        String result = raw;
+        String[] sentences = {
+            "When this device is connected to the network, notifications from another locked Xiaomi phone signed in to the same account can be viewed on this device.",
+            "When devices signed in to the same account are nearby and have Bluetooth and WLAN turned on, notifications from other devices can be replied to directly on this device."
+        };
+        for (String sentence : sentences) {
+            String value = MANUAL.get(sentence);
+            if (value != null && result.contains(sentence)) result = result.replace(sentence, value);
+        }
+        return result.equals(raw) ? original : result;
+    }
+
+    private static String lookup(String value) {
+        String translated = MANUAL.get(value);
+        if (translated == null) translated = runtime.get(value);
+        return translated;
     }
 
     /** Preserve spans, URLs and ClickableSpan objects on the main summary. */
