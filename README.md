@@ -2,10 +2,11 @@
 
 Xiaomi HyperOS 4 ve MiLink (\`com.milink.service\`) için açık kaynak test modülü.
 
-**Son sürüm: v0.4.0-alpha4 — cihazda henüz doğrulanmadı.** Önceki v0.1.0-alpha1 ana Interconnectivity sayfasında Türkçe metinleri başarıyla gösterdi.
+**Son sürüm: v0.5.0-alpha5 — Xiaomi Share kapsamı henüz cihazda doğrulanmadı.** Önceki v0.1.0-alpha1 ana Interconnectivity sayfasında Türkçe metinleri başarıyla gösterdi.
 
-## v0.4 alpha4 kapsamı
+## v0.5 alpha5 kapsamı
 
+- **Yeni ayrı uygulama kapsamı:** Xiaomi Share'in kendi `com.miui.mishare.connectivity` sürecine Türkçe UI hook'ları eklendi. Xiaomi Share ekranının yazıları MiLink APK'sında bulunmadığı için önceki sürümler bu ekranı etkileyemiyordu. Xiaomi Share için çevrimdışı, ekran görüntülerine dayanan Türkçe metin sözlüğü kullanılır; MiLink'in dinamik kaynak sözlüğü ayrı kalır.
 - **Alt ekran Türkçeleri:** Ana ekran+, Ekran yansıtma, Bildirimler (Al / Eşitle), Xiaomi Share dahil kullanıcının gönderdiği ekranlardaki eksik metinlerin sabit karşılıkları eklendi. Yeni ekranlarda dinamik kaynak sözlüğü de kullanılacak.
 - **Tüm MiLink alt menüleri:** yalnızca başlangıç \`ConnectivityActivity\` yerine MiLink'e ait tüm \`Activity\` ekranlarında, eşleşen UI metinlerini Türkçeye çevirir.
 - **Dinamik çeviri sözlüğü:** cihazda yüklü MiLink APK'sının \`R$string\` kaynaklarını İngilizce ve Türkçe yapılandırmada çözümler. Aktif LightOS/KernelSU Türkçe overlay'inden yararlanır. Çakışan metinleri güvenle atlar; çalışma anında sadece UI \`TextView\` değerlerini değiştirir. Ayrıca ilk ekranda doğrulanmış metinler için sabit karşılıklar vardır.
@@ -18,7 +19,7 @@ Xiaomi HyperOS 4 ve MiLink (\`com.milink.service\`) için açık kaynak test mod
 - Xiaomi 15 Ultra \`xuanyuan\`
 - HyperOS \`OS4.0.0.18.XOACNXM\`, Android 17, API 37
 - KernelSU Next ve modern LSPosed API 102
-- LSPosed kapsamı: **yalnızca \`com.milink.service\`**
+- LSPosed kapsamı: **`com.milink.service` + `com.miui.mishare.connectivity`**
 
 ## Kurulum
 
@@ -42,3 +43,14 @@ Tanınan sınıflar/sürüm eşleşmeleri ROM güncellemesiyle değişebilir. AP
 ### Sınır
 
 Tüm cihaz tiplerini kapsamak, Xiaomi hesabının sunucu tarafı Çin bölgesi kuralını kaldırmaz. Ayrıca bazı cihaz-keşif kontrolleri `com.xiaomi.mirror` sürecindedir; bu sürümün LSPosed kapsamı yalnızca `com.milink.service` olduğu için bunlara müdahale etmez. Bu sürüm **tam/garantili bölge kilidi kaldırma** olarak sunulmaz.
+
+## v0.5 kurulum kontrolü (önemli)
+
+LSPosed → Modüller → MiLink TR + Region Fix → Kapsam bölümünde iki paket işaretli olmalı:
+
+- `com.milink.service` — Interconnectivity ve diğer MiLink alt ekranları
+- `com.miui.mishare.connectivity` — ayrı Xiaomi Share sayfası
+
+APK kurulumundan sonra her iki uygulama işlemini yeniden başlatın veya telefonu yeniden başlatın. Önceden yalnızca MiLink işaretliyse yeni kapsam otomatik etkinleşmeyebilir.
+
+**Güvenlik:** Bölge uyum hook'u yalnızca `com.milink.service` içinde çalışır. `com.miui.mishare.connectivity` içinde yalnızca UI metni çevrilir. Çin Xiaomi hesabı sunucu doğrulaması değiştirilmez.

@@ -14,45 +14,49 @@ import io.github.libxposed.api.XposedModuleInterface.PackageLoadedParam;
 import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam;
 
 /**
- * API 102. UI translation hooks run ONLY inside com.milink.service.
+ * API 102. UI text hooks run in MiLink and Xiaomi Share only.
  * Region compatibility applies only to already-trusted remote device IDs;
  * Xiaomi Account and remote-server authorization are not altered.
  */
 public final class MiLinkModule extends XposedModule {
     private static final String TAG = "MiLinkTR";
     private static final String MILINK = "com.milink.service";
+    private static final String MISHARE = "com.miui.mishare.connectivity";
     private final AtomicInteger translatedLogs = new AtomicInteger();
     private boolean installed;
     private ClassLoader loader;
 
     @Override
     public void onModuleLoaded(ModuleLoadedParam param) {
-        Log.i(TAG, "alpha4 API102 loaded in " + param.getProcessName());
+        Log.i(TAG, "alpha5 API102 loaded in " + param.getProcessName());
     }
 
     @Override
     public void onPackageLoaded(PackageLoadedParam param) {
-        if (MILINK.equals(param.getPackageName())) {
-            Log.i(TAG, "MiLink package loaded; waiting for active loader");
+        if (isTranslatedPackage(param.getPackageName())) {
+            Log.i(TAG, "Translation target loaded: " + param.getPackageName());
         }
     }
 
     @Override
     public synchronized void onPackageReady(PackageReadyParam param) {
-        if (!MILINK.equals(param.getPackageName()) || installed) return;
+        if (!isTranslatedPackage(param.getPackageName()) || installed) return;
         installed = true;
         loader = param.getClassLoader();
-        RegionDiagnostics.report();
+        if (MILINK.equals(param.getPackageName())) RegionDiagnostics.report();
         installTextHook();
         installFocusHook();
-        new PcRegionFix(this, loader).install();
+        // Local region compatibility must never touch the Xiaomi Share process.
+        if (MILINK.equals(param.getPackageName())) {
+            new PcRegionFix(this, loader).install();
+        }
     }
 
     private void installTextHook() {
         try {
             Method m = TextView.class.getDeclaredMethod(
                     "setText", CharSequence.class, TextView.BufferType.class);
-            hook(m).setId("milink-tr-textview-alpha4").intercept(chain -> {
+            hook(m).setId("milink-tr-textview-alpha5").intercept(chain -> {
                 Object receiver = chain.getThisObject();
                 if (!(receiver instanceof TextView)) return chain.proceed();
                 TextView tv = (TextView) receiver;
@@ -68,7 +72,7 @@ public final class MiLinkModule extends XposedModule {
                 }
                 return chain.proceed(new Object[]{translated, chain.getArg(1)});
             });
-            Log.i(TAG, "TextView#setText installed for all MiLink UI pages");
+            Log.i(TAG, "TextView#setText active for MiLink / Xiaomi Share");
         } catch (Throwable t) {
             Log.e(TAG, "TextView hook installation failed", t);
         }
@@ -77,14 +81,15 @@ public final class MiLinkModule extends XposedModule {
     private void installFocusHook() {
         try {
             Method m = Activity.class.getDeclaredMethod("onWindowFocusChanged", boolean.class);
-            hook(m).setId("milink-tr-window-focus-alpha4").intercept(chain -> {
+            hook(m).setId("milink-tr-window-focus-alpha5").intercept(chain -> {
                 Object result = chain.proceed();
                 Object receiver = chain.getThisObject();
                 if (receiver instanceof Activity && Boolean.TRUE.equals(chain.getArg(0))) {
                     Activity activity = (Activity) receiver;
-                    if (MILINK.equals(activity.getPackageName())
+                    if (isTranslatedPackage(activity.getPackageName())
                             && activity.getWindow() != null) {
-                        TranslationCatalog.ensureLoaded(activity, loader, () -> {
+                        if (MILINK.equals(activity.getPackageName())) {
+                            TranslationCatalog.ensureLoaded(activity, loader, () -> {
                             if (!activity.isFinishing() && !activity.isDestroyed()) {
                                 activity.runOnUiThread(() -> {
                                     if (activity.getWindow() != null) {
@@ -92,22 +97,27 @@ public final class MiLinkModule extends XposedModule {
                                     }
                                 });
                             }
-                        });
+                            });
+                        }
                         rewriteTree(activity.getWindow().getDecorView());
                     }
                 }
                 return result;
             });
-            Log.i(TAG, "All MiLink Activity focus refresh installed");
+            Log.i(TAG, "MiLink and Xiaomi Share Activity focus refresh installed");
         } catch (Throwable t) {
             Log.e(TAG, "Activity focus hook failed", t);
         }
     }
 
+    private static boolean isTranslatedPackage(String packageName) {
+        return MILINK.equals(packageName) || MISHARE.equals(packageName);
+    }
+
     private static boolean isMiLinkView(TextView view) {
         try {
             Context ctx = view.getContext();
-            return ctx != null && MILINK.equals(ctx.getPackageName());
+            return ctx != null && isTranslatedPackage(ctx.getPackageName());
         } catch (Throwable ignored) {
             return false;
         }
