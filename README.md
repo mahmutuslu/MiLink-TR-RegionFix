@@ -55,3 +55,10 @@ LSPosed → Modüller → MiLink TR + Region Fix → Kapsam bölümünde iki pak
 APK kurulumundan sonra her iki uygulama işlemini yeniden başlatın veya telefonu yeniden başlatın. Önceden yalnızca MiLink işaretliyse yeni kapsam otomatik etkinleşmeyebilir.
 
 **Güvenlik:** Bölge uyum hook'u yalnızca `com.milink.service` içinde çalışır. `com.miui.mishare.connectivity` içinde yalnızca UI metni çevrilir. Çin Xiaomi hesabı sunucu doğrulaması değiştirilmez.
+
+
+## HyperOS TR Unified — alpha7 preview (branch `hyperos-tr-unified`)
+
+This experimental branch retains all MiLink and Xiaomi Share API 102 hooks and introduces **package-scoped English-to-Turkish** translations in Gallery (`com.miui.gallery`), Gallery Editor (`com.miui.mediaeditor`), Weather (`com.miui.weather2`), and Gallery plug-in (`com.hyper.gallery.plugin`). It does **not** set system/app locale, alter cloud/account/security, or touch photo editing algorithms. Leave Gallery and Weather at **en-US** until tested. Unknown upstream strings are unchanged to avoid corrupting UI on future app updates. The initial hand-reviewed lexicon is not full coverage: further APK-extracted English/LightOS pairs can be added after on-device tests.
+
+LSPosed API102 scope: all six entries in `scope.list`. **Preview branch only:** the `main` branch remains the user's confirmed-working MiLink v0.6. Installing a separately signed debug APK over another build may require uninstalling the prior module and re-enabling its LSPosed scope; this is not a guaranteed in-place update. Always back up and keep the previous confirmed-working APK available.

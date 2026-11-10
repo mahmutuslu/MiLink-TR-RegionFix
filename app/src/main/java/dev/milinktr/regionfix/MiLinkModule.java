@@ -22,13 +22,17 @@ public final class MiLinkModule extends XposedModule {
     private static final String TAG = "MiLinkTR";
     private static final String MILINK = "com.milink.service";
     private static final String MISHARE = "com.miui.mishare.connectivity";
+    private static final String GALLERY = "com.miui.gallery";
+    private static final String EDITOR = "com.miui.mediaeditor";
+    private static final String WEATHER = "com.miui.weather2";
+    private static final String GALLERY_PLUGIN = "com.hyper.gallery.plugin";
     private final AtomicInteger translatedLogs = new AtomicInteger();
     private boolean installed;
     private ClassLoader loader;
 
     @Override
     public void onModuleLoaded(ModuleLoadedParam param) {
-        Log.i(TAG, "alpha6 API102 loaded in " + param.getProcessName());
+        Log.i(TAG, "alpha7 HyperOS TR unified preview API102 loaded in " + param.getProcessName());
     }
 
     @Override
@@ -57,7 +61,7 @@ public final class MiLinkModule extends XposedModule {
         try {
             Method m = TextView.class.getDeclaredMethod(
                     "setText", CharSequence.class, TextView.BufferType.class);
-            hook(m).setId("milink-tr-textview-alpha6").intercept(chain -> {
+            hook(m).setId("hyperos-tr-textview-alpha7").intercept(chain -> {
                 Object receiver = chain.getThisObject();
                 if (!(receiver instanceof TextView)) return chain.proceed();
                 TextView tv = (TextView) receiver;
@@ -66,14 +70,17 @@ public final class MiLinkModule extends XposedModule {
                 Object original = chain.getArg(0);
                 if (!(original instanceof CharSequence)) return chain.proceed();
                 CharSequence value = (CharSequence) original;
-                CharSequence translated = Translations.translate(value);
+                String hostPackage = tv.getContext().getPackageName();
+                CharSequence translated = isMiLinkPackage(hostPackage)
+                        ? Translations.translate(value)
+                        : UnifiedTranslations.translate(hostPackage, value);
                 if (translated == value) return chain.proceed();
                 if (translatedLogs.getAndIncrement() < 40) {
                     Log.i(TAG, "UI label translated");
                 }
                 return chain.proceed(new Object[]{translated, chain.getArg(1)});
             });
-            Log.i(TAG, "TextView#setText active for MiLink / Xiaomi Share");
+            Log.i(TAG, "TextView#setText active for scoped HyperOS TR apps");
         } catch (Throwable t) {
             Log.e(TAG, "TextView hook installation failed", t);
         }
@@ -82,7 +89,7 @@ public final class MiLinkModule extends XposedModule {
     private void installFocusHook() {
         try {
             Method m = Activity.class.getDeclaredMethod("onWindowFocusChanged", boolean.class);
-            hook(m).setId("milink-tr-window-focus-alpha6").intercept(chain -> {
+            hook(m).setId("hyperos-tr-window-focus-alpha7").intercept(chain -> {
                 Object result = chain.proceed();
                 Object receiver = chain.getThisObject();
                 if (receiver instanceof Activity && Boolean.TRUE.equals(chain.getArg(0))) {
@@ -105,13 +112,19 @@ public final class MiLinkModule extends XposedModule {
                 }
                 return result;
             });
-            Log.i(TAG, "MiLink and Xiaomi Share Activity focus refresh installed");
+            Log.i(TAG, "HyperOS TR Activity focus refresh installed");
         } catch (Throwable t) {
             Log.e(TAG, "Activity focus hook failed", t);
         }
     }
 
     private static boolean isTranslatedPackage(String packageName) {
+        return isMiLinkPackage(packageName) || GALLERY.equals(packageName)
+                || EDITOR.equals(packageName) || WEATHER.equals(packageName)
+                || GALLERY_PLUGIN.equals(packageName);
+    }
+
+    private static boolean isMiLinkPackage(String packageName) {
         return MILINK.equals(packageName) || MISHARE.equals(packageName);
     }
 
@@ -130,7 +143,10 @@ public final class MiLinkModule extends XposedModule {
             TextView tv = (TextView) view;
             if (isMiLinkView(tv)) {
                 CharSequence before = tv.getText();
-                CharSequence after = Translations.translate(before);
+                String packageName = tv.getContext().getPackageName();
+                CharSequence after = isMiLinkPackage(packageName)
+                        ? Translations.translate(before)
+                        : UnifiedTranslations.translate(packageName, before);
                 if (after != before) tv.setText(after);
             }
         }
