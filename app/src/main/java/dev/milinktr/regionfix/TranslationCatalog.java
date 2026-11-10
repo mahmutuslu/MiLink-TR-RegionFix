@@ -88,10 +88,37 @@ final class TranslationCatalog {
                         }
                     }
                 }
+                // Fallback for newer Xiaomi builds where R$string fields are
+                // absent, moved into split APKs or removed by shrinking.
+                // Names were extracted from the supplied ROM + Turkish overlay.
+                int namesResolved = 0;
+                String[] names = ResourceKeys.all();
+                for (String resourceName : names) {
+                    try {
+                        int id = enContext.getResources().getIdentifier(
+                                resourceName, "string", appContext.getPackageName());
+                        if (id == 0 || !seenResourceIds.add(id)) continue;
+                        String en = enContext.getString(id);
+                        String tr = trContext.getString(id);
+                        namesResolved++;
+                        scanned++;
+                        if (!usable(en, tr)) continue;
+                        String existing = pairs.get(en);
+                        if (existing != null && !existing.equals(tr)) {
+                            ambiguous.add(en);
+                            overlaps++;
+                        } else if (existing == null) {
+                            pairs.put(en, tr);
+                        }
+                    } catch (Throwable missing) {
+                        // The ROM may not contain this particular source key.
+                    }
+                }
                 for (String s : ambiguous) pairs.remove(s);
                 Translations.replaceRuntimeDictionary(pairs);
                 Log.i(TAG, "Translation catalog: classes=" + classes
-                        + " scanned=" + scanned + " pairs=" + pairs.size()
+                        + " scanned=" + scanned + " names=" + namesResolved + "/" + names.length
+                        + " pairs=" + pairs.size()
                         + " ambiguous=" + overlaps);
             } catch (Throwable t) {
                 Log.e(TAG, "Dynamic catalog failed; manual translations remain active", t);
