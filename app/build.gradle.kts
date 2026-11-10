@@ -7,7 +7,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "dev.milinktr.regionfix"
+        applicationId = "dev.hyperostr.unified"
         minSdk = 29
         targetSdk = 32
         versionCode = 7
