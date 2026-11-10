@@ -2,14 +2,14 @@
 
 Xiaomi HyperOS 4 ve MiLink (\`com.milink.service\`) için açık kaynak test modülü.
 
-**Son sürüm: v0.2.0-alpha2 — cihazda henüz doğrulanmadı.** Önceki v0.1.0-alpha1 ana Interconnectivity sayfasında Türkçe metinleri başarıyla gösterdi.
+**Son sürüm: v0.3.0-alpha3 — cihazda henüz doğrulanmadı.** Önceki v0.1.0-alpha1 ana Interconnectivity sayfasında Türkçe metinleri başarıyla gösterdi.
 
-## v0.2 alpha2 kapsamı
+## v0.3 alpha3 kapsamı
 
 - **Tüm MiLink alt menüleri:** yalnızca başlangıç \`ConnectivityActivity\` yerine MiLink'e ait tüm \`Activity\` ekranlarında, eşleşen UI metinlerini Türkçeye çevirir.
 - **Dinamik çeviri sözlüğü:** cihazda yüklü MiLink APK'sının \`R$string\` kaynaklarını İngilizce ve Türkçe yapılandırmada çözümler. Aktif LightOS/KernelSU Türkçe overlay'inden yararlanır. Çakışan metinleri güvenle atlar; çalışma anında sadece UI \`TextView\` değerlerini değiştirir. Ayrıca ilk ekranda doğrulanmış metinler için sabit karşılıklar vardır.
 - **Zengin biçimli metinler:** Ana ekrandaki "Learn more" linkini koruyacak sınırlı bir dönüştürme içerir.
-- **Yerel bilgisayar bölge uyumu:** \`NetworkingManager.getStringProperty(String,int)\` içindeki \`PropBuildRegion\` karşılaştırmasında, karşıdaki cihazın tipinin PC (4) veya OTHER_PC (21) olduğunu doğrularsa yerel bölgeyi kullanır. Diğer cihazlara dokunmaz.
+- **Yerel bölge uyumu (tüm güvenilir cihaz tipleri):** `NetworkingManager.getStringProperty(String,int)` içindeki `PropBuildRegion` sorgusunda yalnızca MiLink güvenilir cihaz kayıtlarında doğrulanmış, kimliği eşleşen uzak cihazların yerel bölge değerini döndürür. Global telefon/tablet/bilgisayar için aynı yerel eşleştirme uygulanır; bilinmeyen veya eşleştirilmemiş cihazlara dokunulmaz.
 - **Hesap doğrulama:** Xiaomi hesabı, giriş bilgisi, token'lar, sunucu doğrulaması, abonelik veya sunucu tarafı Çin hesabı gereksinimi **değiştirilmez / kaldırılamaz**. Bilgisayarın bölge uyumu ile hesap ülke kısıtı farklı konulardır.
 
 ## Hedef
@@ -34,6 +34,10 @@ LightOS overlay'in çok sayıda Türkçe kaynak içermesine rağmen MiLink'in ke
 
 ## Güvenlik ve geri alma
 
-Bu modül MiLink'teki UI yazılarını ve yalnızca PC tipindeki cihazlar için yerel bölge özelliğini etkiler. KernelSU çeviri ZIP'i ile bağımsızdır; Çin hesabı sunucu doğrulamasını atlatmaz. Sorun halinde LSPosed'de modülü devre dışı bırakıp MiLink'i yeniden başlat.
+Bu modül MiLink'teki UI yazılarını ve yalnızca MiLink tarafından güvenilir olarak kaydedilmiş uzak cihazlar için yerel bölge özelliğini etkiler. KernelSU çeviri ZIP'i ile bağımsızdır; Çin hesabı sunucu doğrulamasını atlatmaz. Sorun halinde LSPosed'de modülü devre dışı bırakıp MiLink'i yeniden başlat.
 
 Tanınan sınıflar/sürüm eşleşmeleri ROM güncellemesiyle değişebilir. APK'nin GitHub'da derlenmiş olması her özelliğin telefonda doğrulandığı anlamına gelmez. Ayrıntılar: [TESTING.md](docs/TESTING.md), [REGION_SCOPE.md](docs/REGION_SCOPE.md).
+
+### Sınır
+
+Tüm cihaz tiplerini kapsamak, Xiaomi hesabının sunucu tarafı Çin bölgesi kuralını kaldırmaz. Ayrıca bazı cihaz-keşif kontrolleri `com.xiaomi.mirror` sürecindedir; bu sürümün LSPosed kapsamı yalnızca `com.milink.service` olduğu için bunlara müdahale etmez. Bu sürüm **tam/garantili bölge kilidi kaldırma** olarak sunulmaz.

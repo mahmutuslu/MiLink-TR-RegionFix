@@ -1,22 +1,14 @@
-# Yerel bölge uyumluluğu ve Çin hesabı sınırları
+# Region fix: trusted-device compatibility
 
-İki ayrı kısıtlama vardır:
+MiLink \`NetworkingManager.getStringProperty(String, PropBuildRegion)\` sorgusunun hedefi tüm **önceden güvenilir olarak kayıtlı uzak cihazlar** olabilir: Windows PC, global telefon, tablet, uyumlu diğer cihaz tipleri.
 
-1. **Cihaz bölge eşleştirmesi:** Aynı Xiaomi hesaplarına sahip, ancak farklı ülke kodu bildiren Windows PC'ler, cihaz keşfi/clipboard/file özelliklerinde yerel \`PropBuildRegion\` eşleştirmesine takılabilir. Bu sürümde yalnızca karşı tarafın \`getDeviceType()\` değeri PC=4 veya OTHER_PC=21 ise, MiLink'in yerel eşleştirme yanıtında telefonun kendi bölgesi kullanılır.
-2. **Xiaomi hesabının ülke ve sunucu yetkisi:** Xiaomi sunucusunun Çin hesabı, sunucu etkinleştirmesi veya sertifika/cihaz onayı şartı LSPosed tarafından otomatik kaldırılmaz. Modül bu kontrolleri değiştirmez.
+v0.3 alpha3'te:
+- Yalnızca \`PropBuildRegion\` özelliğinin dönen değeri değiştirilir.
+- Uzak cihazın \`getTrustedDeviceInfo(deviceId)\` kaydı bulunmalı; dönen nesnenin \`getDeviceId()\` değeri istenen cihaz kimliği ile eşleşmelidir.
+- Bilinmeyen cihaz kimliği, boş veri, bilinmeyen enum veya yerel bölgenin okunamaması durumunda orijinal sonuç korunur.
+- Hiçbir cihaz kaydı oluşturulmaz; eşleştirme, hesap oturumu, güvenlik kimliği, token ve sunucu yanıtları değiştirilmez.
+- \`com.xiaomi.mirror\` içindeki keşif/bölge kontrolü ve sunucu tarafı Çin hesabı sınırlaması kapsam dışıdır.
 
-MiLink APK üzerinde aşağıdaki imzalar doğrulandı:
+Bu yüzden **yerel bölge karşılaştırması** için daha genel bir düzeltme sunar; bütün Xiaomi bölge kısıtlamalarını kaldırdığını garanti etmez.
 
-- \`com.xiaomi.continuity.networking.NetworkingManager.getStringProperty(String,int):String\`
-- \`getTrustedDeviceInfo(String):TrustedDeviceInfo\`
-- \`getLocalDeviceInfo():TrustedDeviceInfo\`
-- \`TrustedDeviceInfo.getDeviceType():int\`
-- \`TrustedDeviceInfo.getDeviceId():String\`
-
-Modül \`PropertyType.PropBuildRegion\` enum sabitini çalışma anında çözümlemeyi dener; yoksa **bölge değişimi yapmaz** (fail closed).
-
-Bu yöntem cihaz keşfinin \`com.xiaomi.mirror\` tarafında ayrı region check varsa onu otomatik geçmez. Çalışan özellikleri bozmamak için kaynağı doğrulanmamış obfuscation hook'ları eklenmemiştir.
-
-Aşağıdaki işlemler bilinçli olarak **yapılmaz**: hesap kimliğini veya ülkesini sahteleştirme, giriş belirteçlerine müdahale, sunucu yanıtlarını değiştirme, cihaz güvenilirliği atlatma veya oturum güvenliği değişiklikleri.
-
-Referans: https://github.com/luobi125/Get-Out-Xiaomi-Interconnection-Regional-Lock (yerel PC bölge uyumu analizi); bu repo kaynak kodunu kopyalamaz, doğrulanan imzaları kullanır.
+Kaynak inceleme: https://github.com/luobi125/Get-Out-Xiaomi-Interconnection-Regional-Lock

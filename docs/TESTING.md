@@ -1,6 +1,6 @@
-# MiLink TR + Region Fix alpha2 — test kontrolü
+# MiLink TR + Region Fix alpha3 — test kontrolü
 
-Bu bir **deneysel** sürümdür. Alpha1'de ana sayfanın çevirisi gerçek cihazda görülmüştür; alpha2 henüz test edilmemiştir.
+Bu bir **deneysel** sürümdür. Alpha1'de ana sayfanın çevirisi gerçek cihazda görülmüştür; alpha3 henüz test edilmemiştir.
 
 1. LSPosed kapsamı: \`com.milink.service\`, modern API 102.
 2. MiLink uygulama dilini Türkçe olarak ayarla:
@@ -17,8 +17,10 @@ Bu bir **deneysel** sürümdür. Alpha1'de ana sayfanın çevirisi gerçek cihaz
 Beklenen günlükler:
 - \`TextView#setText installed for all MiLink UI pages\`
 - \`Translation catalog: classes=... scanned=... pairs=...\`
-- \`Local PC-only region compatibility hook active\` (enum biliniyorsa)
+- \`Local trusted-device region compatibility hook active\` (enum biliniyorsa)
 
 Yanlış çeviri veya bağlantı sorunu yaşanırsa LSPosed'de modülü kapatıp \`com.milink.service\` uygulamasını yeniden başlat. Uygulama verilerini silme.
 
-**Önemli:** Bölge uyum hook'u yalnızca yerel cihaz-bölge karşılaştırmasını etkiler; Çin Xiaomi hesabının sunucu doğrulaması için çözüm olarak düşünülmemelidir.
+**Önemli:** Bölge uyum hook'u yalnızca güvenilir uzak cihazların yerel cihaz-bölge karşılaştırmasını etkiler; Çin Xiaomi hesabının sunucu doğrulaması için çözüm olarak düşünülmemelidir.
+
+Global telefon/tablet denemelerinde cihazın önce MiLink güvenilir cihaz listesinde bulunduğunu doğrulayın. Bu sürüm eşleşmemiş cihazın keşif veya hesap yetkilendirme engelini otomatik kaldırmaz.

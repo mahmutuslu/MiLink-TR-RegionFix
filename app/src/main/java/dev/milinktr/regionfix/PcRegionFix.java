@@ -7,8 +7,8 @@ import java.util.HashSet;
 import io.github.libxposed.api.XposedModule;
 
 /**
- * Local cross-region PC interoperability, NOT a China-account bypass.
- * Intercepts only PropBuildRegion of a positively identified PC/OTHER_PC.
+ * Local cross-region interoperability for already-trusted devices, NOT a Xiaomi account bypass.
+ * Intercepts only PropBuildRegion for devices already in MiLink's trusted device registry.
  * The remote server still decides account/device authorization.
  *
  * Based on a public analysis of NetworkingManager in Xiaomi Interconnection,
@@ -16,7 +16,6 @@ import io.github.libxposed.api.XposedModule;
  */
 final class PcRegionFix {
     private static final String TAG = "MiLinkTR";
-    private static final int PC = 4, OTHER_PC = 21;
     private final XposedModule module;
     private final ClassLoader loader;
     private final ThreadLocal<Boolean> nested = new ThreadLocal<>();
@@ -35,10 +34,10 @@ final class PcRegionFix {
                     "getStringProperty", String.class, int.class);
             final int regionProperty = resolveRegionProperty();
             if (regionProperty < 0) {
-                Log.w(TAG, "PC local region fix not installed: property enum unknown");
+                Log.w(TAG, "Local region compatibility not installed: property enum unknown");
                 return;
             }
-            module.hook(method).setId("milink-pc-region-alpha2").intercept(chain -> {
+            module.hook(method).setId("milink-trusted-device-region-alpha3").intercept(chain -> {
                 Object actual = chain.proceed();
                 if (Boolean.TRUE.equals(nested.get())) return actual;
                 try {
@@ -50,7 +49,7 @@ final class PcRegionFix {
                     String deviceId = (String) idArg;
                     Object manager = chain.getThisObject();
                     if (deviceId.isEmpty() || manager == null) return actual;
-                    if (!isComputer(manager, deviceId)) return actual;
+                    if (!isTrustedDevice(manager, deviceId)) return actual;
 
                     String ownId = localId(manager);
                     if (ownId == null || deviceId.equals(ownId)) return actual;
@@ -68,18 +67,18 @@ final class PcRegionFix {
 
                     synchronized (noted) {
                         if (noted.add(deviceId)) {
-                            Log.i(TAG, "Local PC region compatibility enabled for a trusted PC");
+                            Log.i(TAG, "Local region compatibility used for a trusted device");
                         }
                     }
                     return localRegion;
                 } catch (Throwable exception) {
-                    Log.w(TAG, "PC region compatibility skipped: " + exception.getClass().getSimpleName());
+                    Log.w(TAG, "Local region compatibility skipped: " + exception.getClass().getSimpleName());
                     return actual;
                 }
             });
-            Log.i(TAG, "Local PC-only region compatibility hook active");
+            Log.i(TAG, "Trusted-device local region compatibility hook active");
         } catch (Throwable t) {
-            Log.w(TAG, "Local PC region compatibility unavailable", t);
+            Log.w(TAG, "Trusted-device local region compatibility unavailable", t);
         }
     }
 
@@ -97,18 +96,22 @@ final class PcRegionFix {
         return -1; // Fail closed. No guessed ordinal.
     }
 
-    private boolean isComputer(Object manager, String remoteId) {
+    /**
+     * Do not invent remote devices or allow unknown device IDs.
+     * An entry must exist in the trusted-device registry and its reported
+     * device ID must exactly match the requested ID.
+     */
+    private boolean isTrustedDevice(Object manager, String remoteId) {
         try {
             Object trusted = manager.getClass()
                     .getMethod("getTrustedDeviceInfo", String.class)
                     .invoke(manager, remoteId);
             if (trusted == null) return false;
-            Object type = trusted.getClass().getMethod("getDeviceType").invoke(trusted);
-            if (!(type instanceof Number)) return false;
-            int number = ((Number) type).intValue();
-            return number == PC || number == OTHER_PC;
+            Object returnedId = trusted.getClass().getMethod("getDeviceId")
+                    .invoke(trusted);
+            return remoteId.equals(returnedId);
         } catch (Throwable unavailable) {
-            return false; // Do not bypass unknown device types.
+            return false;
         }
     }
 

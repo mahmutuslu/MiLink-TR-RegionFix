@@ -15,7 +15,7 @@ import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam;
 
 /**
  * API 102. UI translation hooks run ONLY inside com.milink.service.
- * Region compatibility is strictly limited to known PC device types;
+ * Region compatibility applies only to already-trusted remote device IDs;
  * Xiaomi Account and remote-server authorization are not altered.
  */
 public final class MiLinkModule extends XposedModule {
