@@ -27,6 +27,18 @@ jobs:
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platforms;android-35" "build-tools;35.0.0"
+      - name: Validate embedded locale key index
+        run: |
+          python3 - <<'PY'
+          import base64, pathlib, re, zlib
+          source = pathlib.Path('app/src/main/java/dev/milinktr/regionfix/ResourceKeys.java').read_text()
+          block = source.split('final String payload =', 1)[1].split(';', 1)[0]
+          encoded = ''.join(re.findall(r'"([^"]+)"', block))
+          names = zlib.decompress(base64.b64decode(encoded)).decode('utf-8').splitlines()
+          assert len(names) == 505, f'Expected 505 MiLink resource keys, got {len(names)}'
+          assert len(set(names)) == len(names), 'Duplicate MiLink resource names'
+          print(f'Validated {len(names)} extracted locale keys')
+          PY
       - name: Build APK
         run: gradle :app:assembleDebug --no-daemon --stacktrace
       - name: Publish debug APK artifact
