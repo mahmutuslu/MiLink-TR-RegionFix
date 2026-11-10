@@ -2,7 +2,7 @@ name: Build debug APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, hyperos-tr-unified-alpha1]
   workflow_dispatch:
 
 permissions:
@@ -39,12 +39,28 @@ jobs:
           assert len(set(names)) == len(names), 'Duplicate MiLink resource names'
           print(f'Validated {len(names)} extracted locale keys')
           PY
+      - name: Verify English-source dictionaries
+        run: |
+          python3 - <<'PY'
+          import base64, pathlib, re, zlib
+          path = pathlib.Path('app/src/main/java/dev/milinktr/regionfix/AppTranslationData.java')
+          source = path.read_text(encoding='utf-8')
+          expected = {'G':66, 'W':147, 'E':167, 'P':254}
+          for name, number in expected.items():
+              m = re.search(r'private static final String ' + name + r' = "([^"]+)";', source)
+              assert m, 'missing dictionary ' + name
+              raw = zlib.decompress(base64.b64decode(m.group(1))).decode('utf-8')
+              rows = [line.split('\\t', 1) for line in raw.splitlines()]
+              assert len(rows) == number, (name, len(rows), number)
+              assert all(len(row) == 2 and row[0] and row[1] for row in rows)
+              print(name, number, 'verified English-source dictionary entries')
+          PY
       - name: Build APK
         run: gradle :app:assembleDebug --no-daemon --stacktrace
       - name: Publish debug APK artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: MiLink-TR-RegionFix-debug-apk
+          name: HyperOS-TR-Unified-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
