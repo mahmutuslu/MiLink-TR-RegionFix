@@ -10,8 +10,8 @@ android {
         applicationId = "dev.hyperostr.unified"
         minSdk = 29
         targetSdk = 32
-        versionCode = 7
-        versionName = "0.7.0-unified-alpha1-api102"
+        versionCode = 8
+        versionName = "0.7.1-unified-alpha2-api102"
     }
 
     compileOptions {
