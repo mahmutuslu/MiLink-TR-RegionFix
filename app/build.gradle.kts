@@ -1,0 +1,31 @@
+plugins {
+    id("com.android.application")
+}
+
+android {
+    namespace = "dev.milinktr.regionfix"
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "dev.milinktr.regionfix"
+        minSdk = 29
+        targetSdk = 32
+        versionCode = 1
+        versionName = "0.1.0-alpha1-api102"
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+        }
+    }
+}
+
+dependencies {
+    compileOnly("io.github.libxposed:api:102.0.0")
+}
