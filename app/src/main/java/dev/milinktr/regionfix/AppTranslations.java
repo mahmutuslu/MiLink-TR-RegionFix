@@ -37,12 +37,22 @@ final class AppTranslations {
         Map<String, String> dict = CACHE.computeIfAbsent(pkg, AppTranslations::load);
         if (dict.isEmpty()) return source;
         String key = source.toString();
-        String value = dict.get(key);
+        String value = lookupInAppAndEmbeddedEditor(pkg, key, dict);
         if (value == null) {
             String compact = key.replace('\u00a0', ' ').trim();
-            if (!compact.equals(key)) value = dict.get(compact);
+            if (!compact.equals(key)) value = lookupInAppAndEmbeddedEditor(pkg, compact, dict);
         }
         return value != null && !value.equals(key) ? value : source;
+    }
+
+    // Media Editor and Gallery Plugin can render within Gallery's process.
+    private static String lookupInAppAndEmbeddedEditor(String pkg, String key,
+                                                       Map<String, String> primary) {
+        String value = primary.get(key);
+        if (value != null || !"com.miui.gallery".equals(pkg)) return value;
+        value = CACHE.computeIfAbsent("com.miui.mediaeditor", AppTranslations::load).get(key);
+        if (value != null) return value;
+        return CACHE.computeIfAbsent("com.hyper.gallery.plugin", AppTranslations::load).get(key);
     }
 
     private static Map<String, String> load(String pkg) {
