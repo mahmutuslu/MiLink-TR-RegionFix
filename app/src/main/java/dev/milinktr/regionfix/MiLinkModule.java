@@ -2,7 +2,6 @@ package dev.milinktr.regionfix;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.Resources;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,7 +28,7 @@ public class MiLinkModule extends XposedModule {
 
     @Override
     public void onModuleLoaded(ModuleLoadedParam param) {
-        Log.i(TAG, "Unified alpha1 API102 loaded in " + param.getProcessName());
+        Log.i(TAG, "MiLink TR + Region Fix v1.0.0 API102 loaded in " + param.getProcessName());
     }
 
     @Override
@@ -47,7 +46,6 @@ public class MiLinkModule extends XposedModule {
         if (MILINK.equals(param.getPackageName())) RegionDiagnostics.report();
         installTextHook();
         installFocusHook();
-        if (AppTranslations.isApp(param.getPackageName())) installResourcesHook(param.getPackageName());
         // Local region compatibility must never touch the Xiaomi Share process.
         if (MILINK.equals(param.getPackageName())) {
             new PcRegionFix(this, loader).install();
@@ -69,9 +67,7 @@ public class MiLinkModule extends XposedModule {
                 if (!(original instanceof CharSequence)) return chain.proceed();
                 CharSequence value = (CharSequence) original;
                 String pkg = tv.getContext().getPackageName();
-                CharSequence translated = AppTranslations.isApp(pkg)
-                        ? AppTranslations.translate(pkg, value)
-                        : Translations.translate(value);
+                CharSequence translated = Translations.translate(value);
                 if (translated == value) return chain.proceed();
                 if (translatedLogs.getAndIncrement() < 60) {
                     Log.i(TAG, "UI label translated for " + pkg);
@@ -116,33 +112,8 @@ public class MiLinkModule extends XposedModule {
         }
     }
 
-    private void installResourcesHook(String scopePkg) {
-        try {
-            Method method = Resources.class.getDeclaredMethod("getText", int.class);
-            hook(method).setId("hyperos-tr-resources-unified-alpha1").intercept(chain -> {
-                Object value = chain.proceed();
-                if (!(value instanceof CharSequence) || value instanceof android.text.Spanned)
-                    return value;
-                Object receiver = chain.getThisObject();
-                if (!(receiver instanceof Resources)) return value;
-                try {
-                    int resId = (Integer) chain.getArg(0);
-                    if (!scopePkg.equals(((Resources) receiver).getResourcePackageName(resId)))
-                        return value;
-                    return AppTranslations.translate(scopePkg, (CharSequence) value);
-                } catch (Throwable t) {
-                    return value;
-                }
-            });
-            Log.i("HyperOSTR", "Resource translation active: " + scopePkg);
-        } catch (Throwable t) {
-            Log.w("HyperOSTR", "Resource hook unavailable: " + scopePkg, t);
-        }
-    }
-
     private static boolean isTranslatedPackage(String packageName) {
-        return MILINK.equals(packageName) || MISHARE.equals(packageName)
-                || AppTranslations.isApp(packageName);
+        return MILINK.equals(packageName) || MISHARE.equals(packageName);
     }
 
     private static boolean isTargetView(TextView view) {
@@ -160,10 +131,7 @@ public class MiLinkModule extends XposedModule {
             TextView tv = (TextView) view;
             if (isTargetView(tv)) {
                 CharSequence before = tv.getText();
-                String pkg = tv.getContext().getPackageName();
-                CharSequence after = AppTranslations.isApp(pkg)
-                        ? AppTranslations.translate(pkg, before)
-                        : Translations.translate(before);
+                CharSequence after = Translations.translate(before);
                 if (after != before) tv.setText(after);
             }
         }

@@ -1,49 +1,20 @@
-# MiLink TR + Region Fix alpha3 — test kontrolü
+# MiLink TR + Region Fix v1.0.0 — kurulum ve kabul kontrolleri
 
-Bu bir **deneysel** sürümdür. Alpha1'de ana sayfanın çevirisi gerçek cihazda görülmüştür; alpha3 henüz test edilmemiştir.
+Hedef: Xiaomi 15 Ultra `xuanyuan`, HyperOS 4, LSPosed API 102.
 
-1. LSPosed kapsamı: `com.milink.service` ve `com.miui.mishare.connectivity`, modern API 102.
-2. MiLink uygulama dilini Türkçe olarak ayarla:
-   \`\`\`powershell
-   & "C:\platform-tools\adb.exe" shell "cmd locale set-app-locales com.milink.service --user 0 --locales tr-TR"
-   \`\`\`
-3. MiLink işlemini yeniden başlat:
-   \`\`\`powershell
-   & "C:\platform-tools\adb.exe" shell "am force-stop com.milink.service"
-   \`\`\`
-4. Ana menü ve tüm alt menüleri incele; özellikle linklerin tıklanabilirliğini kontrol et.
-5. \`& "C:\platform-tools\adb.exe" logcat -d -v time -s MiLinkTR:V\` ile sözlük sayısı ve yerel PC hook loglarını incele.
+## CI doğrulaması
+- Java 17 ile APK derlemesi
+- 505 MiLink kaynak anahtarı, benzersizlik kontrolü
+- LSPosed kapsamında yalnızca `com.milink.service` ve `com.miui.mishare.connectivity`
+- Galeri/Hava Durumu/Flutter sözlük sınıfları derlemeye dahil değil
 
-Beklenen günlükler:
-- \`TextView#setText installed for all MiLink UI pages\`
-- \`Translation catalog: classes=... scanned=... pairs=...\`
-- \`Local trusted-device region compatibility hook active\` (enum biliniyorsa)
+## Telefonda
+1. Mevcut `dev.hyperostr.unified` imzası yeni APK ile uyuşmuyorsa önceki test sürümünü kaldır; LSPosed kapsamını yeniden aç.
+2. LSPosed iki kapsamı etkinleştir ve telefonu yeniden başlat.
+3. MiLink ana ve alt menülerindeki Türkçe metinleri, bağlantıları, Bildirimler > Al sayfasını kontrol et.
+4. Xiaomi Share sayfası metinlerini ve dosya aktarımını kontrol et.
+5. `adb logcat -d -v time -s MiLinkTR:V HyperOSTR:V` çıktısında hook kurulumlarını gözle.
+6. Aynı Xiaomi hesabındaki önceden güvenilir cihaz keşfini ayrı doğrula; diğer hesabın yanlışlıkla görünmediğini kontrol et.
+7. Uygulama çökmesi veya eşleşme sorunu olursa modülü devre dışı bırak, işlemleri yeniden başlat.
 
-Yanlış çeviri veya bağlantı sorunu yaşanırsa LSPosed'de modülü kapatıp \`com.milink.service\` uygulamasını yeniden başlat. Uygulama verilerini silme.
-
-**Önemli:** Bölge uyum hook'u yalnızca güvenilir uzak cihazların yerel cihaz-bölge karşılaştırmasını etkiler; Çin Xiaomi hesabının sunucu doğrulaması için çözüm olarak düşünülmemelidir.
-
-Global telefon/tablet denemelerinde cihazın önce MiLink güvenilir cihaz listesinde bulunduğunu doğrulayın. Bu sürüm eşleşmemiş cihazın keşif veya hesap yetkilendirme engelini otomatik kaldırmaz.
-
-## Xiaomi Share son ekran testi (alpha5)
-
-1. LSPosed'de `com.miui.mishare.connectivity` için kapsamı **ayrıca** etkinleştirin.
-2. MiLink ve Xiaomi Share uygulamalarını yeniden başlatın (veya telefonu yeniden başlatın).
-3. Xiaomi Share ekranında `Dosya almak için Xiaomi Share'i açın`, `Yakındaki cihazlar tarafından bulunabilir`, `Dokundurarak paylaş`, `Cihaz adı`, `Desteklenen cihazlar`, `Gizlilik` yazılarını doğrulayın.
-4. Log: `adb logcat -d -v time -s MiLinkTR:V` — yeni scope yüklendi mi kontrol edin.
-5. Hâlâ İngilizceyse ekran açıkken `adb shell dumpsys activity activities` ile etkin Activity paketini doğrulayın; sistem verilerini veya Xiaomi Share uygulama verilerini silmeyin.
-
-## v0.6 — Aynı hesap korumalı, CN zorunluluğu olmayan keşif testi
-
-Bu alpha sürümünde telefon cihaz araması sırasında gerçek Xiaomi hesabı oturumunu doğrulayabiliyorsa yerel CN hesap-bölgesi koşulu yalnızca o çağrı için gevşetilir. **Aynı hesap kontrolü veya sunucu doğrulaması geçersiz kılınmaz.**
-
-1. LSPosed kapsamı: \`com.milink.service\` ve \`com.miui.mishare.connectivity\`; yeniden başlat.
-2. MiLink > Bildirimler > Al bölümüne girip "Yenile" seçeneğine bas.
-3. \`adb logcat -d -v time -s MiLinkTR:V\` çıktısını incele:
-   - \`Discovery-only CN account region compatibility installed\`: hook kurulmuş.
-   - \`CN-only check relaxed for discovery with a signed-in Xiaomi account\`: bu keşifte bölge koşulu gerçekten uygulanmış.
-   - Bu mesajın olmaması, yolun kullanıldığını **kanıtlamaz**.
-4. Varsa aynı Xiaomi hesabındaki Global telefon/tablette de Wi-Fi/Bluetooth açıkken cihaz listelerini karşılaştır.
-5. Sorun varsa LSPosed'de modülü devre dışı bırakıp MiLink'i yeniden başlat; hesap/veri temizleme veya ROM bölgesi değiştirme gerekmez.
-
-Önemli: Diğer bir LSPosed modülü aynı keşif fonksiyonunu değiştiriyorsa birlikte davranışları doğrulanmalıdır.
+CI başarısı, telefondaki tüm bağlantı senaryolarının kanıtı değildir. Dün denenen MiLink/Xiaomi Share kapsamını korur; global keşif ve Xiaomi sunucu kısıtları garanti edilmez. Galeri ve Hava Durumu kapsam dışıdır.

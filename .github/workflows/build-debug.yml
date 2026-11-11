@@ -1,4 +1,4 @@
-name: Build debug APK
+name: Build and publish MiLink TR APK
 
 on:
   push:
@@ -6,10 +6,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  debug-apk:
+  apk:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,44 +23,53 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Install compile SDK with runner's sdkmanager
+      - name: Install compile SDK
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platforms;android-35" "build-tools;35.0.0"
-      - name: Validate embedded locale key index
+      - name: Verify release scope and embedded locale resources
         run: |
           python3 - <<'PY'
           import base64, pathlib, re, zlib
-          source = pathlib.Path('app/src/main/java/dev/milinktr/regionfix/ResourceKeys.java').read_text()
-          block = source.split('final String payload =', 1)[1].split(';', 1)[0]
-          encoded = ''.join(re.findall(r'"([^"]+)"', block))
-          names = zlib.decompress(base64.b64decode(encoded)).decode('utf-8').splitlines()
-          assert len(names) == 505, f'Expected 505 MiLink resource keys, got {len(names)}'
-          assert len(set(names)) == len(names), 'Duplicate MiLink resource names'
-          print(f'Validated {len(names)} extracted locale keys')
-          PY
-      - name: Verify English-source dictionaries
-        run: |
-          python3 - <<'PY'
-          import base64, pathlib, re, zlib
-          path = pathlib.Path('app/src/main/java/dev/milinktr/regionfix/AppTranslationData.java')
-          source = path.read_text(encoding='utf-8')
-          expected = {'G':66, 'W':147, 'E':167, 'P':254}
-          for name, number in expected.items():
-              m = re.search(r'private static final String ' + name + r' = "([^"]+)";', source)
-              assert m, 'missing dictionary ' + name
-              raw = zlib.decompress(base64.b64decode(m.group(1))).decode('utf-8')
-              rows = [line.split(chr(9), 1) for line in raw.splitlines()]
-              assert len(rows) == number, (name, len(rows), number)
-              assert all(len(row) == 2 and row[0] and row[1] for row in rows)
-              print(name, number, 'verified English-source dictionary entries')
+          root=pathlib.Path("app/src/main")
+          source=(root/"java/dev/milinktr/regionfix/ResourceKeys.java").read_text(encoding="utf-8")
+          block=source.split("final String payload =",1)[1].split(";",1)[0]
+          names=zlib.decompress(base64.b64decode("".join(re.findall(r'"([^"]+)"',block)))).decode("utf-8").splitlines()
+          assert len(names)==505 and len(set(names))==505, "Invalid MiLink locale index"
+          scope=(root/"resources/META-INF/xposed/scope.list").read_text(encoding="utf-8").splitlines()
+          assert scope==["com.milink.service","com.miui.mishare.connectivity"],scope
+          java=(root/"java/dev/milinktr/regionfix/MiLinkModule.java").read_text(encoding="utf-8")
+          assert "AppTranslations" not in java and "installResourcesHook" not in java
+          assert not (root/"java/dev/milinktr/regionfix/AppTranslations.java").exists()
+          assert not (root/"java/dev/milinktr/regionfix/AppTranslationData.java").exists()
+          gradle=pathlib.Path("app/build.gradle.kts").read_text(encoding="utf-8")
+          assert 'versionName = "1.0.0-api102"' in gradle
+          print("Validated 505 MiLink resources and exactly two LSPosed scopes.")
           PY
       - name: Build APK
         run: gradle :app:assembleDebug --no-daemon --stacktrace
-      - name: Publish debug APK artifact
-        if: success()
+      - name: Verify APK exists
+        run: |
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          sha256sum app/build/outputs/apk/debug/app-debug.apk
+      - name: Publish CI APK
         uses: actions/upload-artifact@v4
         with:
-          name: HyperOS-TR-Unified-debug-apk
+          name: MiLink-TR-RegionFix-v1.0.0-apk
           path: app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
+          retention-days: 90
+      - name: Publish v1.0.0 GitHub Release from main
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk MiLink-TR-RegionFix-v1.0.0.apk
+          if gh release view v1.0.0 >/dev/null 2>&1; then
+            gh release upload v1.0.0 MiLink-TR-RegionFix-v1.0.0.apk --clobber
+          else
+            gh release create v1.0.0 MiLink-TR-RegionFix-v1.0.0.apk \
+              --target "$GITHUB_SHA" \
+              --title "MiLink TR + Region Fix v1.0.0 (API 102)" \
+              --notes-file RELEASE_NOTES.md \
+              --latest
+          fi
