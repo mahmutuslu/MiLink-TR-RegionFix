@@ -7,11 +7,11 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "dev.milinktr.regionfix"
+        applicationId = "dev.hyperostr.unified"
         minSdk = 29
         targetSdk = 32
-        versionCode = 6
-        versionName = "0.6.0-alpha6-api102"
+        versionCode = 9
+        versionName = "1.0.0-api102"
     }
 
     compileOptions {
