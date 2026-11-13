@@ -137,3 +137,21 @@ These are seven **descriptor key names**, *not* seven validated hook methods. Th
 **Operational conclusion:** the previous estimate of exactly 3 Mirror + 6 MiLink target methods cannot be derived from UI's 0/3 and 0/6 status labels. A 7-key Mirror descriptor enum has now been extracted directly and independently of the UI counters. Do not present raw enum keys as validated OEM method signatures.
 
 No phone state or PC Manager functionality was changed.
+
+## 2026-11-13: concrete old/new OEM method signature diff
+
+A reproducible method-id table comparison of the supplied `MirrorOS4.apk` (factory 18.01.07) against `Mirror_18.03.01.apk` (active 18.03.01) found a **real changed external API**:
+
+```text
+Lcom/xiaomi/continuity/networking/TrustedDeviceInfo;
+  OLD: i()Z                    NEW: i()I
+  OLD: k(Ljava/lang/String;)V NEW: k()Z
+  OLD: m(I)V                   NEW: m(Ljava/lang/String;)V
+                                NEW: n(I)V
+Lcom/xiaomi/continuity/networking/BusinessServiceInfo;
+  No method-reference signature additions/removals in inspected class
+Lcom/xiaomi/mirror/message/ScreenActionMessage;
+                                NEW: ensureOpenRequestId()J
+```
+
+The `TrustedDeviceInfo` version-specific signature changes are verified by the old/new DEX method IDs. They are plausible reflection mismatch sites. **However, this is an API-difference list, not proof these methods are among the target feature's actual hooks or that a fix exists**. Do not install speculative interception based only on this difference. A script for repeatable comparison is `tools/oem_compat_diff.py` (requires existing `dex_methods.py` parser or adapting import).
