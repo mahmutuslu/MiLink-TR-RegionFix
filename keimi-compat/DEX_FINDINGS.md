@@ -84,3 +84,15 @@ The locally mounted original `KeiMi_2.6.0+89f8bc77.apk` was inspected again, usi
 **Critical corrected interpretation:** The `mirror_computer_fusion_descriptors` Bundle is assembled from the `Lwd0;` result map after a versioned **DexKit search**, not a static pre-written list of all hook method signatures. Thus the mere presence of `0/3` and `0/6` does NOT establish nine hardcoded methods inside the APK. The resolver can yield no matches on changed OEM builds. The first missing datum is the actual query rules and the expected per-feature output keys, particularly the `Ljz0;` callback and the Mirror `Lz9;` case. Do not invent nine signatures.
 
 The phone's working Xiaomi PC Manager connection remains out of scope for modification. No functional LSPosed patch has been validated.
+
+
+## Mirror DexKit callback discriminator verified (raw DEX instructions)
+
+Read-only examination of the user-provided `KeiMi_2.6.0+89f8bc77.apk`:
+
+- In `classes2.dex`, `Ldn;->III(Context)Bundle` (code item `0xF72E0`) constructs `new Lz9;` and immediately supplies the constructor discriminator `const/16 v1, #+26`, then passes this object as the `Ljz0;` callback to `Lyd0;->Il(...)` with schema `mirror-computer-fusion-v1`.
+- `Lz9;->I1(Object,Object)Object` (code item `0xD6D48`) dispatches through a genuine DEX packed-switch, 29 cases, first key 0. Switch key **26** branches to byte offset `0x72` from the start of that method's instructions. Therefore the next analysis should decode **case 26**, not every unrelated `Lz9;` case.
+- Caution: `Lz9;` is a shared, heavily obfuscated lambda; other branches contain text like `FusionUtils`, `CommonPc`, or `mirror-desktop-open-display`. The presence of a keyword in the same *method* does not establish it belongs to the Mirror computer-fusion DexKit query. Confirm the case-26 control-flow range before treating these strings as query constraints.
+- The confirmed callback route is `Ldn;->III` → `Lz9;(26)` → `Ljz0;->I1` executed from `Lyd0;->II` → `Lwd0;` map → `mirror_computer_fusion_descriptors` Bundle.
+
+No 3/3 or 6/6 hook signatures are asserted without verified descriptor key/value outputs.
