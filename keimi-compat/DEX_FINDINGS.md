@@ -96,3 +96,19 @@ Read-only examination of the user-provided `KeiMi_2.6.0+89f8bc77.apk`:
 - The confirmed callback route is `Ldn;->III` → `Lz9;(26)` → `Ljz0;->I1` executed from `Lyd0;->II` → `Lwd0;` map → `mirror_computer_fusion_descriptors` Bundle.
 
 No 3/3 or 6/6 hook signatures are asserted without verified descriptor key/value outputs.
+
+
+## 2026-11-13: Mirror case 26 opcode inspection
+
+The actual packed-switch payload of `KeiMi classes2.dex Lz9;->I1` was parsed (payload code unit 2326, 29 cases, switch key starting at 0). Case 26 targets **code unit 57** (relative byte offset `0x72`) and its candidate linear body spans code units **57–149**.
+
+Verified instructions in that region:
+
+- `new LinkedHashMap` and `LII;->I1(Lpp0;Lpp0;)Llll;` iterator acquisition.
+- `Llll;->hasNext()`, `Llll;->next()` enumerate descriptor candidate entries.
+- `Enum.name()` and `Enum.ordinal()` extract keys from an enum; `Lof2;` is referenced as a type.
+- `Ldd0;->IO(String,Lfz0;)Lee0;` and `Ldd0;->II(String,Lyc0;)Lee0;` create two query builder entries.
+- `Map.put()` records results and `Ldz1;->l0O(Map)Map;` returns a transformed map.
+- There are no direct `const-string` instructions within code units 57–149, so the actual class/method matching predicates reside in referenced objects/enum values, not literal targets in this branch.
+
+This establishes a concrete query-construction path, **NOT** the 3+6 exact OEM hook signatures. The next dependency is inspecting `Lof2;`, `Lfz0;`, `Lyc0;`, and `Lz92;` along with how case 26 receives its `Lpp0;` inputs. Do not equate the MiLink `iphone-fusion-v3` chain with Smart Hub without evidence.
