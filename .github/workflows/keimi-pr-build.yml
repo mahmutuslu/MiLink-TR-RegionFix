@@ -1,0 +1,34 @@
+name: Build KeiMi diagnostic module (PR)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'keimi-compat/lsposed/**'
+      - '.github/workflows/keimi-pr-build.yml'
+  workflow_dispatch:
+jobs:
+  build:
+    if: github.head_ref == 'feature/keimi-hyperos4-compat' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Assemble diagnostic APK
+        run: gradle -p keimi-compat/lsposed --no-daemon :app:assembleDebug
+      - name: Attach build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeiMi-HyperOS4-diagnostic-APK
+          path: keimi-compat/lsposed/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
