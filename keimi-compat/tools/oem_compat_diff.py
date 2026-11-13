@@ -2,7 +2,37 @@
 """Read-only DEX API comparison for Mirror OEM APKs. Put dex_methods.py alongside."""
 import sys
 from collections import defaultdict
-from dex_methods import apk_methods
+import zipfile,struct,re
+
+def uleb(b,p):
+    out=0; shift=0
+    for _ in range(5):
+        x=b[p];p+=1;out|=(x&127)<<shift
+        if x<128:return out,p
+        shift+=7
+    raise ValueError('invalid uleb')
+
+def parse_dex(b):
+    u32=lambda p:struct.unpack_from('<I',b,p)[0]
+    strings=[]
+    for i in range(u32(0x38)):
+        off=u32(u32(0x3c)+4*i);_,off=uleb(b,off)
+        strings.append(b[off:b.index(b'\\0',off)].decode('utf-8','replace'))
+    types=[strings[u32(u32(0x44)+4*i)] for i in range(u32(0x40))]
+    protos=[]
+    for i in range(u32(0x48)):
+        _,ret,args=struct.unpack_from('<III',b,u32(0x4c)+12*i)
+        params=[] if not args else [types[struct.unpack_from('<H',b,args+4+2*j)[0]] for j in range(u32(args))]
+        protos.append('('+''.join(params)+')'+types[ret])
+    for i in range(u32(0x58)):
+        cl,pr,n=struct.unpack_from('<HHI',b,u32(0x5c)+8*i)
+        yield types[cl],strings[n],protos[pr]
+
+def apk_methods(path):
+    with zipfile.ZipFile(path) as z:
+        for name in z.namelist():
+            if re.fullmatch(r'classes(?:\\d+)?\\.dex',name):
+                yield name,parse_dex(z.read(name))
 
 def index(path):
     result=defaultdict(set)
