@@ -1,6 +1,7 @@
 package dev.keimi.hyperos4.probe;
 
 import java.lang.reflect.Method;
+import android.util.Log;
 import io.github.libxposed.api.XposedModule;
 import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam;
 
@@ -15,9 +16,9 @@ public final class ProbeModule extends XposedModule {
         if (!"com.xiaomi.mirror".equals(pkg) && !"com.milink.service".equals(pkg)) {
             return;
         }
-        log("KeiMiProbe: attached package=" + pkg + " API=" + getApiVersion());
+        report("KeiMiProbe: attached package=" + pkg + " API=" + getApiVersion());
         if (!"com.milink.service".equals(pkg)) {
-            log("KeiMiProbe: Mirror instrumentation intentionally disabled pending exact hook targets.");
+            report("KeiMiProbe: Mirror instrumentation intentionally disabled pending exact hook targets.");
             return;
         }
         probe(param.getClassLoader(),
@@ -30,6 +31,10 @@ public final class ProbeModule extends XposedModule {
               "com.xiaomi.miplay.audioclient.sdk.MiPlayClient", "quitSmartHubUI");
     }
 
+    private void report(String message) {
+        log(Log.INFO, "KeiMiProbe", message);
+    }
+
     private void probe(ClassLoader loader, String className, String name) {
         try {
             Class<?> type = Class.forName(className, false, loader);
@@ -40,16 +45,16 @@ public final class ProbeModule extends XposedModule {
                     continue;
                 }
                 hook(method).intercept(chain -> {
-                    log("KeiMiProbe: call " + className + "." + name);
+                    report("KeiMiProbe: call " + className + "." + name);
                     return chain.proceed();
                 });
                 installed++;
             }
-            log("KeiMiProbe: " + className + "." + name + " hooks=" + installed);
+            report("KeiMiProbe: " + className + "." + name + " hooks=" + installed);
         } catch (ClassNotFoundException e) {
-            log("KeiMiProbe: not loaded " + className);
+            report("KeiMiProbe: not loaded " + className);
         } catch (Throwable e) {
-            log("KeiMiProbe: install error " + className + "." + name
+            report("KeiMiProbe: install error " + className + "." + name
                 + " type=" + e.getClass().getName());
         }
     }
