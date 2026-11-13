@@ -50,3 +50,20 @@ The caller resolves version-dependent descriptors dynamically and reflects over 
 These are **class-name strings used during reflection**, not proof that six classes each correspond to a distinct hook.
 
 **Remaining task:** Decode the body of the descriptor producing code (including version-gated and potentially obfuscated mapping construction) to recover each enum-key -> class/method/field signature tuple. Then compare actual definitions in both OEM APK versions. Until that is done, listing nine exact hook signatures would be fabricated and a patch must not ship.
+
+
+## Additional DEX method-definition verification
+
+The following signatures and code offsets were verified against the **defined-method table**, not only raw keyword matches, in `KeiMi_2.6.0+89f8bc77.apk/classes2.dex`:
+
+- `Ldn;->III(Landroid/content/Context;)Landroid/os/Bundle;` — method-id 4509, code offset `0xF72E0`, 100 code units. Calls `Lfn;->I11(Context,String)Lx91;` (reads package metadata) and `Lyd0;->Il(Context,String,String,long,String,Ljz0;)Lwd0;` with package `com.xiaomi.mirror` and schema `mirror-computer-fusion-v1`. Then serializes map entries into `mirror_computer_fusion_descriptors` and returns `health_host_version_code`.
+- `Lk92;->I11(Context,ClassLoader)Lh91;` — method-id 9966, code offset `0x22544C`, 325 code units. Calls `ContentResolver.call` with `resolve_mirror_computer_fusion`, checks returned host-version value, loads the descriptor Bundle, and resolves reflective methods.
+- `Lhu0;->IIo(Application,ClassLoader,Bundle)Lef1;` — method-id 7099, code offset `0x186F24`, 974 code units. Checks MiLink package `versionCode`; requires `milink_fusion_resolver_schema` equal to `iphone-fusion-v3` and `milink_fusion_descriptors`. Resolves reflective methods/fields and a `COMPUTER_CONSTRUCTOR`. Error paths include `Unsupported MiLink versionCode=` and `MiLink fusion resolver schema missing/mismatched for versionCode=`.
+- `Lhu0;->IO0(String,Bundle)String` — method-id 7101, code offset `0x1883E4`, 18 code units. Looks up required descriptor entries.
+
+Additional follow-up into the descriptor producer:
+- `Lfn;->I11(Context,String)Lx91;` — method-id 5619, code offset `0xFB3B8`, checks `PackageInfo.getLongVersionCode()`.
+- `Lyd0;->Il(Context,String,String,long,String,Ljz0;)Lwd0;` — method-id 18936, code offset `0x1543EC`, the next dependency for deriving version-specific descriptor maps.
+- `Lz9;->I1(Object,Object)Object` — method-id 19633, code offset `0xD6D48`, a large 2388-unit multi-case lambda containing `FusionUtils`/desktop-device strings. Its mere string presence does not prove these are the active hook targets.
+
+**Correctness caveat:** The MiLink `iphone-fusion-v3` errors concern iPhone fusion and are not yet proven to be the Xiaomi Smart Hub 0/6 feature. Keep these two investigations separate. No nine-item exact target tuple list established, and no functional patch validated yet.
