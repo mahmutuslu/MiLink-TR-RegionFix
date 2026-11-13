@@ -67,3 +67,20 @@ Additional follow-up into the descriptor producer:
 - `Lz9;->I1(Object,Object)Object` — method-id 19633, code offset `0xD6D48`, a large 2388-unit multi-case lambda containing `FusionUtils`/desktop-device strings. Its mere string presence does not prove these are the active hook targets.
 
 **Correctness caveat:** The MiLink `iphone-fusion-v3` errors concern iPhone fusion and are not yet proven to be the Xiaomi Smart Hub 0/6 feature. Keep these two investigations separate. No nine-item exact target tuple list established, and no functional patch validated yet.
+
+
+## 2026-11-13: deeper local APK verification
+
+The locally mounted original `KeiMi_2.6.0+89f8bc77.apk` was inspected again, using DEX method definition tables and read-only opcode examination, with specific code offsets:
+
+| DEX defined method | Offset | Verified direct calls |
+| --- | --- | --- |
+| `Lyd0;->Il(Context,String,String,long,String,Ljz0;)Lwd0;` | `0x1543ec`, 70 code units | `Low4;->lI`, `Lyd0;->I`, `ConcurrentHashMap.computeIfAbsent`, `Lyd0;->O`, `Lyd0;->II` |
+| `Lyd0;->II(Context,String,String,String,long,String,Ljz0;)Lwd0;` | `0x154494`, 287 code units | `Led0;->l`, `Ljz0;->I1`, `Low4;->II`, `Lyd0;->I0`; logs DexKit query / cache / JNI metrics |
+| `Lyd0;->I0(Context,String,long,String,Lxd0;,Object,Lmd0;,long)Lwd0;` | `0x15427c`, 148 code units | Captures DexKit query metrics: target / schema / source / result hits / query failures / bridge count |
+| `Lyd0;->O(Context,String,long)V` | `0x1547d4`, 154 code units | Verifies target APK fingerprint, invalidates cached entries when it changes |
+| `Lyd0;->I(long,String,String)String` | `0x154774`, 24 code units | Creates a cache key containing version code and descriptor schema |
+
+**Critical corrected interpretation:** The `mirror_computer_fusion_descriptors` Bundle is assembled from the `Lwd0;` result map after a versioned **DexKit search**, not a static pre-written list of all hook method signatures. Thus the mere presence of `0/3` and `0/6` does NOT establish nine hardcoded methods inside the APK. The resolver can yield no matches on changed OEM builds. The first missing datum is the actual query rules and the expected per-feature output keys, particularly the `Ljz0;` callback and the Mirror `Lz9;` case. Do not invent nine signatures.
+
+The phone's working Xiaomi PC Manager connection remains out of scope for modification. No functional LSPosed patch has been validated.
