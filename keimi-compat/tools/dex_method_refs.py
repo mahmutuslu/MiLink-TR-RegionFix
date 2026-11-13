@@ -50,7 +50,7 @@ def apk_method_refs(path):
     result = set()
     with zipfile.ZipFile(path) as apk:
         for name in apk.namelist():
-            if re.fullmatch(r"classes(?:[2-9][0-9]*)?\\.dex", name):
+            if name.startswith("classes") and name.endswith(".dex"):
                 result.update(parse_method_refs(apk.read(name)))
     return result
 
