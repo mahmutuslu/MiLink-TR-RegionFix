@@ -116,3 +116,24 @@ This establishes a concrete query-construction path, **NOT** the 3+6 exact OEM h
 ### Enum class resolved
 
 `Lof2;` is present as a defined DEX class with seven enum-typed static fields (`I0`, `I1`, `II`, `IO`, `Il`, `Io`, `o`), an array field `l0`, and a `Lpp0;` field `l1`. These are the obfuscated descriptor-key candidates used by the case-26 iteration. **Seven enum constants are not equivalent to seven hook methods**; resolving constructor ordinal/name mapping, the `Lpp0;` input source and associated DexKit query builder objects is still required before defining OEM hook targets.
+
+
+## Concrete enum keys recovered from KeiMi Mirror Case 26
+
+Decoded `Lof2;-><clinit>()V` at `classes2.dex` code-item `0x244198` using the DEX `string_ids`, `method_ids`, `field_ids` and class-definition tables.
+
+| Ordinal | Literal enum name | Obfuscated field |
+| ---: | --- | --- |
+| 0 | `MAC_ONLINE` | `Lof2;->o` |
+| 1 | `REQUEST` | `Lof2;->I0` |
+| 2 | `PACKET_CALLBACK` | `Lof2;->I1` |
+| 3 | `CHANNEL_READY` | `Lof2;->Il` |
+| 4 | `SCREEN_OPEN` | `Lof2;->II` |
+| 5 | `DISPLAY_CLOSE` | `Lof2;->IO` |
+| 6 | `DISPLAY_INSTANCE` | `Lof2;->Io` |
+
+These are seven **descriptor key names**, *not* seven validated hook methods. The `Lz9;->I1` case-26 loop uses `Enum.name()` to generate the query key and `Enum.ordinal()` to branch to `Ldd0;->IO(String,Lfz0;)` versus `Ldd0;->II(String,Lyc0;)` builders. `Lz92;-><init>(B)V` is created in the case-26 branch and is an obfuscated callback/lambda carrier. Disambiguating its selected case and extracting its actual DexKit predicates is still necessary to identify corresponding classes in Mirror 18.03.01.
+
+**Operational conclusion:** the previous estimate of exactly 3 Mirror + 6 MiLink target methods cannot be derived from UI's 0/3 and 0/6 status labels. A 7-key Mirror descriptor enum has now been extracted directly and independently of the UI counters. Do not present raw enum keys as validated OEM method signatures.
+
+No phone state or PC Manager functionality was changed.
