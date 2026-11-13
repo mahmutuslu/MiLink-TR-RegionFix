@@ -1,1 +1,1 @@
-<resources><string name="module_description">Read-only diagnostics for Mirror and MiLink; does not enable unavailable features.</string></resources>
+<resources><string name="module_description">Read-only Mirror and MiLink diagnostics; does not bypass OEM compatibility or enable unavailable features.</string></resources>
