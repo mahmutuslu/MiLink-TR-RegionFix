@@ -112,3 +112,7 @@ Verified instructions in that region:
 - There are no direct `const-string` instructions within code units 57–149, so the actual class/method matching predicates reside in referenced objects/enum values, not literal targets in this branch.
 
 This establishes a concrete query-construction path, **NOT** the 3+6 exact OEM hook signatures. The next dependency is inspecting `Lof2;`, `Lfz0;`, `Lyc0;`, and `Lz92;` along with how case 26 receives its `Lpp0;` inputs. Do not equate the MiLink `iphone-fusion-v3` chain with Smart Hub without evidence.
+
+### Enum class resolved
+
+`Lof2;` is present as a defined DEX class with seven enum-typed static fields (`I0`, `I1`, `II`, `IO`, `Il`, `Io`, `o`), an array field `l0`, and a `Lpp0;` field `l1`. These are the obfuscated descriptor-key candidates used by the case-26 iteration. **Seven enum constants are not equivalent to seven hook methods**; resolving constructor ordinal/name mapping, the `Lpp0;` input source and associated DexKit query builder objects is still required before defining OEM hook targets.
